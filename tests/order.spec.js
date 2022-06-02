@@ -5,9 +5,8 @@ const { v4 } = require('uuid')
 
 const generateStorageStateFile = (filename) => {
   const currentPathSegments = filename.split(path.sep)
-  const storageStatePath = `storage-states/state-${
-    currentPathSegments[currentPathSegments.length - 1]
-  }-${v4()}.json`
+  const storageStatePath = `storage-states/state-${currentPathSegments[currentPathSegments.length - 1]
+    }-${v4()}.json`
   if (fs.existsSync(storageStatePath)) {
     fs.unlinkSync(storageStatePath)
   }
@@ -16,17 +15,24 @@ const generateStorageStateFile = (filename) => {
 
 const storageStatePath = generateStorageStateFile(__filename)
 
+const locatorExists = async (locator) => {
+  try {
+    await locator.waitFor({ state: "attached" })
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
 test.beforeAll(async ({ browser }) => {
-    const page = await browser.newPage()
-    await page.goto('https://demo.playwright.dev/todomvc');
-    try {
-      await page.locator('[data-e2e="msft"]').waitFor({ timeout: 1000 })
-    } catch {
-      throw "Timed out waiting for element"
-    }
-    console.log(`Setting storage state to ${storageStatePath}`)
-    await page.context().storageState({ path: storageStatePath })
-    await page.close()
+  const page = await browser.newPage()
+  await page.goto('https://demo.playwright.dev/todomvc');
+  const ex = await locatorExists(page.locator('[data-e2e="msft"]'))
+  console.log(ex)
+  console.log(`Setting storage state to ${storageStatePath}`)
+  await page.context().storageState({ path: storageStatePath })
+  await page.close()
 })
 
 
@@ -42,5 +48,5 @@ test.describe('New Todo', () => {
   }
 
 
-    test('should allow me to add todo items', async () => { console.log('In test') })
+  test('should allow me to add todo items', async () => { console.log('In test') })
 })
